@@ -25,6 +25,8 @@ import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.BigIntVector;
 import org.apache.arrow.vector.IntVector;
+import org.apache.arrow.vector.LargeVarBinaryVector;
+import org.apache.arrow.vector.LargeVarCharVector;
 import org.apache.arrow.vector.SmallIntVector;
 import org.apache.arrow.vector.TinyIntVector;
 import org.apache.arrow.vector.UInt1Vector;
@@ -33,6 +35,7 @@ import org.apache.arrow.vector.UInt4Vector;
 import org.apache.arrow.vector.UInt8Vector;
 import org.apache.arrow.vector.VarBinaryVector;
 import org.apache.arrow.vector.VarCharVector;
+import org.apache.arrow.vector.complex.LargeListVector;
 import org.apache.arrow.vector.complex.ListVector;
 import org.apache.arrow.vector.testing.ValueVectorDataPopulator;
 import org.apache.arrow.vector.types.Types;
@@ -135,6 +138,11 @@ public class TestDefaultVectorComparator {
         }
       }
     }
+  }
+
+  @Test
+  public void testCompareLargeList() {
+    //
   }
 
   @Test
@@ -400,6 +408,16 @@ public class TestDefaultVectorComparator {
 
   @Test
   public void testCompareUtf8() {
+    // TODO
+  }
+
+  @Test
+  public void testCompareLargeBinary() {
+    // TODO
+  }
+
+  @Test
+  public void testCompareLargeUtf8() {
     // TODO
   }
 }
