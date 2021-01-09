@@ -212,12 +212,37 @@ def test_to_numpy_timedelta64(unit):
     np.testing.assert_array_equal(np_arr, expected)
 
 
-def test_to_numpy_dictionary():
+@pytest.mark.parametrize(("dictionary_array", "expected", "zero_copy_only"), [
     # ARROW-7591
-    arr = pa.array(["a", "b", "a"]).dictionary_encode()
-    expected = np.array(["a", "b", "a"], dtype=object)
-    np_arr = arr.to_numpy(zero_copy_only=False)
-    np.testing.assert_array_equal(np_arr, expected)
+    (
+        pa.array(["a", "b", "a"]).dictionary_encode(),
+        np.array(["a", "b", "a"], dtype=object),
+        False,
+    ),
+
+    # ARROW-9594
+    (
+        pa.DictionaryArray.from_arrays(
+            pa.array([0, 1, None, 0], type=pa.int32()),
+            pa.array([-1, 42], type=pa.int32())
+        ),
+        # consistent with pandas promotion of numeric null -> float NaN
+        np.array([-1.0, np.nan, 42.0], dtype=float),
+        False,
+    ),
+    (
+        pa.DictionaryArray.from_arrays(
+            pa.array([0, 1, None, 0], type=pa.int32()),
+            pa.array(["foo", "bar"], type=pa.utf8())
+        ),
+        # consistent with pandas promotion of string null -> object None
+        np.array(["foo", "bar", None, "foo"], dtype=object),
+        False
+    ),
+])
+def test_to_numpy_dictionary(dictionary_array, expected, zero_copy):
+    actual = dictionary_array.to_numpy(zero_copy_only=zero_copy_only)
+    np.testing.assert_array_equal(expected, actual)
 
 
 @pytest.mark.pandas
