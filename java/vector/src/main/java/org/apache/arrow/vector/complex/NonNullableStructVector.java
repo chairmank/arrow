@@ -159,9 +159,6 @@ public class NonNullableStructVector extends AbstractStructVector {
 
   @Override
   public int getBufferSize() {
-    if (valueCount == 0 || size() == 0) {
-      return 0;
-    }
     long buffer = 0;
     for (final ValueVector v : this) {
       buffer += v.getBufferSize();
@@ -172,10 +169,6 @@ public class NonNullableStructVector extends AbstractStructVector {
 
   @Override
   public int getBufferSizeFor(final int valueCount) {
-    if (valueCount == 0) {
-      return 0;
-    }
-
     long bufferSize = 0;
     for (final ValueVector v : this) {
       bufferSize += v.getBufferSizeFor(valueCount);

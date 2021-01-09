@@ -73,7 +73,7 @@ public abstract class BaseVariableWidthVector extends BaseValueVector
     lastValueCapacity = INITIAL_VALUE_ALLOCATION - 1;
     valueCount = 0;
     lastSet = -1;
-    offsetBuffer = allocator.getEmpty();
+    offsetBuffer = allocator.buffer((long) OFFSET_WIDTH);
     validityBuffer = allocator.getEmpty();
     valueBuffer = allocator.getEmpty();
   }
@@ -351,16 +351,10 @@ public abstract class BaseVariableWidthVector extends BaseValueVector
     validityBuffer.readerIndex(0);
     offsetBuffer.readerIndex(0);
     valueBuffer.readerIndex(0);
-    if (valueCount == 0) {
-      validityBuffer.writerIndex(0);
-      offsetBuffer.writerIndex(0);
-      valueBuffer.writerIndex(0);
-    } else {
-      final int lastDataOffset = getStartOffset(valueCount);
-      validityBuffer.writerIndex(getValidityBufferSizeFromCount(valueCount));
-      offsetBuffer.writerIndex((long) (valueCount + 1) * OFFSET_WIDTH);
-      valueBuffer.writerIndex(lastDataOffset);
-    }
+    final int lastDataOffset = getStartOffset(valueCount);
+    validityBuffer.writerIndex(getValidityBufferSizeFromCount(valueCount));
+    offsetBuffer.writerIndex((long) (valueCount + 1) * OFFSET_WIDTH);
+    valueBuffer.writerIndex(lastDataOffset);
   }
 
   /**
@@ -579,9 +573,6 @@ public abstract class BaseVariableWidthVector extends BaseValueVector
 
   @Override
   public int sizeOfValueBuffer() {
-    if (valueCount == 0) {
-      return 0;
-    }
     return offsetBuffer.getInt((long) valueCount * OFFSET_WIDTH);
   }
 
@@ -603,10 +594,6 @@ public abstract class BaseVariableWidthVector extends BaseValueVector
    */
   @Override
   public int getBufferSizeFor(final int valueCount) {
-    if (valueCount == 0) {
-      return 0;
-    }
-
     final int validityBufferSize = getValidityBufferSizeFromCount(valueCount);
     final int offsetBufferSize = (valueCount + 1) * OFFSET_WIDTH;
     /* get the end offset for this valueCount */
@@ -638,14 +625,10 @@ public abstract class BaseVariableWidthVector extends BaseValueVector
   public ArrowBuf[] getBuffers(boolean clear) {
     final ArrowBuf[] buffers;
     setReaderAndWriterIndex();
-    if (getBufferSize() == 0) {
-      buffers = new ArrowBuf[0];
-    } else {
-      buffers = new ArrowBuf[3];
-      buffers[0] = validityBuffer;
-      buffers[1] = offsetBuffer;
-      buffers[2] = valueBuffer;
-    }
+    buffers = new ArrowBuf[3];
+    buffers[0] = validityBuffer;
+    buffers[1] = offsetBuffer;
+    buffers[2] = valueBuffer;
     if (clear) {
       for (final ArrowBuf buffer : buffers) {
         buffer.getReferenceManager().retain();

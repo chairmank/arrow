@@ -110,10 +110,9 @@ public class ValidateVectorBufferVisitor implements VectorVisitor<Void, Void> {
     int valueCount = vector.getValueCount();
     validateVectorCommon(vector);
     validateValidityBuffer(vector, valueCount);
-    long minOffsetCapacity = valueCount == 0 ? 0L : (long) (valueCount + 1) * BaseVariableWidthVector.OFFSET_WIDTH;
+    long minOffsetCapacity = (long) (valueCount + 1) * BaseVariableWidthVector.OFFSET_WIDTH;
     validateOffsetBuffer(vector, minOffsetCapacity);
-    int lastOffset = valueCount == 0 ? 0 :
-        vector.getOffsetBuffer().getInt(valueCount * BaseVariableWidthVector.OFFSET_WIDTH);
+    int lastOffset = vector.getOffsetBuffer().getInt(valueCount * BaseVariableWidthVector.OFFSET_WIDTH);
     validateDataBuffer(vector, lastOffset);
     return null;
   }
@@ -123,11 +122,9 @@ public class ValidateVectorBufferVisitor implements VectorVisitor<Void, Void> {
     int valueCount = vector.getValueCount();
     validateVectorCommon(vector);
     validateValidityBuffer(vector, valueCount);
-    long minOffsetCapacity = valueCount == 0 ? 0L
-        : (long) (valueCount + 1) * BaseLargeVariableWidthVector.OFFSET_WIDTH;
+    long minOffsetCapacity = (long) (valueCount + 1) * BaseLargeVariableWidthVector.OFFSET_WIDTH;
     validateOffsetBuffer(vector, minOffsetCapacity);
-    long lastOffset = valueCount == 0 ? 0L :
-        vector.getOffsetBuffer().getLong((long) valueCount * BaseLargeVariableWidthVector.OFFSET_WIDTH);
+    long lastOffset = vector.getOffsetBuffer().getLong((long) valueCount * BaseLargeVariableWidthVector.OFFSET_WIDTH);
     validateDataBuffer(vector, lastOffset);
     return null;
   }
@@ -137,12 +134,11 @@ public class ValidateVectorBufferVisitor implements VectorVisitor<Void, Void> {
     int valueCount = vector.getValueCount();
     validateVectorCommon(vector);
     validateValidityBuffer(vector, valueCount);
-    long minOffsetCapacity = valueCount == 0 ? 0L : (long) (valueCount + 1) * ListVector.OFFSET_WIDTH;
+    long minOffsetCapacity = (long) (valueCount + 1) * ListVector.OFFSET_WIDTH;
     validateOffsetBuffer(vector, minOffsetCapacity);
 
     FieldVector dataVector = vector.getDataVector();
-    int lastOffset = valueCount == 0 ? 0 :
-        vector.getOffsetBuffer().getInt(valueCount * BaseVariableWidthVector.OFFSET_WIDTH);
+    int lastOffset = vector.getOffsetBuffer().getInt(valueCount * BaseVariableWidthVector.OFFSET_WIDTH);
     int dataVectorLength = dataVector == null ? 0 : dataVector.getValueCount();
     validateOrThrow(dataVectorLength >= lastOffset,
         "Inner vector does not contain enough elements. Minimum element count %s, actual element count %s",
@@ -175,12 +171,11 @@ public class ValidateVectorBufferVisitor implements VectorVisitor<Void, Void> {
     int valueCount = vector.getValueCount();
     validateVectorCommon(vector);
     validateValidityBuffer(vector, valueCount);
-    long minOffsetCapacity = valueCount == 0 ? 0L : (long) (valueCount + 1) * LargeListVector.OFFSET_WIDTH;
+    long minOffsetCapacity = (long) (valueCount + 1) * LargeListVector.OFFSET_WIDTH;
     validateOffsetBuffer(vector, minOffsetCapacity);
 
     FieldVector dataVector = vector.getDataVector();
-    long lastOffset = valueCount == 0 ? 0 :
-        vector.getOffsetBuffer().getLong(valueCount * BaseLargeVariableWidthVector.OFFSET_WIDTH);
+    long lastOffset = vector.getOffsetBuffer().getLong(valueCount * BaseLargeVariableWidthVector.OFFSET_WIDTH);
     int dataVectorLength = dataVector == null ? 0 : dataVector.getValueCount();
     validateOrThrow(dataVectorLength >= lastOffset,
         "Inner vector does not contain enough elements. Minimum element count %s, actual element count %s",

@@ -310,17 +310,11 @@ public class FixedSizeListVector extends BaseValueVector implements BaseListVect
 
   @Override
   public int getBufferSize() {
-    if (getValueCount() == 0) {
-      return 0;
-    }
     return getValidityBufferSizeFromCount(valueCount) + vector.getBufferSize();
   }
 
   @Override
   public int getBufferSizeFor(int valueCount) {
-    if (valueCount == 0) {
-      return 0;
-    }
     return getValidityBufferSizeFromCount(valueCount) +
             vector.getBufferSizeFor(valueCount * listSize);
   }
@@ -349,14 +343,10 @@ public class FixedSizeListVector extends BaseValueVector implements BaseListVect
   public ArrowBuf[] getBuffers(boolean clear) {
     setReaderAndWriterIndex();
     final ArrowBuf[] buffers;
-    if (getBufferSize() == 0) {
-      buffers = new ArrowBuf[0];
-    } else {
-      List<ArrowBuf> list = new ArrayList<>();
-      list.add(validityBuffer);
-      list.addAll(Arrays.asList(vector.getBuffers(false)));
-      buffers = list.toArray(new ArrowBuf[list.size()]);
-    }
+    List<ArrowBuf> list = new ArrayList<>();
+    list.add(validityBuffer);
+    list.addAll(Arrays.asList(vector.getBuffers(false)));
+    buffers = list.toArray(new ArrowBuf[list.size()]);
     if (clear) {
       for (ArrowBuf buffer : buffers) {
         buffer.getReferenceManager().retain();

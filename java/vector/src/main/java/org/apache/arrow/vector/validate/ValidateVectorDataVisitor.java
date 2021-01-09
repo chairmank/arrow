@@ -39,9 +39,6 @@ import org.apache.arrow.vector.complex.UnionVector;
 public class ValidateVectorDataVisitor implements VectorVisitor<Void, Void> {
 
   private void validateOffsetBuffer(ValueVector vector, int valueCount) {
-    if (valueCount == 0) {
-      return;
-    }
     ArrowBuf offsetBuffer = vector.getOffsetBuffer();
 
     // verify that the values in the offset buffer is non-decreasing
@@ -57,9 +54,6 @@ public class ValidateVectorDataVisitor implements VectorVisitor<Void, Void> {
   }
 
   private void validateLargeOffsetBuffer(ValueVector vector, int valueCount) {
-    if (valueCount == 0) {
-      return;
-    }
     ArrowBuf offsetBuffer = vector.getOffsetBuffer();
 
     // verify that the values in the large offset buffer is non-decreasing

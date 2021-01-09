@@ -237,13 +237,8 @@ public class ListVector extends BaseRepeatedValueVector implements PromotableVec
   private void setReaderAndWriterIndex() {
     validityBuffer.readerIndex(0);
     offsetBuffer.readerIndex(0);
-    if (valueCount == 0) {
-      validityBuffer.writerIndex(0);
-      offsetBuffer.writerIndex(0);
-    } else {
-      validityBuffer.writerIndex(getValidityBufferSizeFromCount(valueCount));
-      offsetBuffer.writerIndex((valueCount + 1) * OFFSET_WIDTH);
-    }
+    validityBuffer.writerIndex(getValidityBufferSizeFromCount(valueCount));
+    offsetBuffer.writerIndex((valueCount + 1) * OFFSET_WIDTH);
   }
 
   @Override
@@ -603,9 +598,6 @@ public class ListVector extends BaseRepeatedValueVector implements PromotableVec
    */
   @Override
   public int getBufferSize() {
-    if (valueCount == 0) {
-      return 0;
-    }
     final int offsetBufferSize = (valueCount + 1) * OFFSET_WIDTH;
     final int validityBufferSize = getValidityBufferSizeFromCount(valueCount);
     return offsetBufferSize + validityBufferSize + vector.getBufferSize();
@@ -613,11 +605,7 @@ public class ListVector extends BaseRepeatedValueVector implements PromotableVec
 
   @Override
   public int getBufferSizeFor(int valueCount) {
-    if (valueCount == 0) {
-      return 0;
-    }
     final int validityBufferSize = getValidityBufferSizeFromCount(valueCount);
-
     return super.getBufferSizeFor(valueCount) + validityBufferSize;
   }
 
@@ -660,15 +648,11 @@ public class ListVector extends BaseRepeatedValueVector implements PromotableVec
   public ArrowBuf[] getBuffers(boolean clear) {
     setReaderAndWriterIndex();
     final ArrowBuf[] buffers;
-    if (getBufferSize() == 0) {
-      buffers = new ArrowBuf[0];
-    } else {
-      List<ArrowBuf> list = new ArrayList<>();
-      list.add(offsetBuffer);
-      list.add(validityBuffer);
-      list.addAll(Arrays.asList(vector.getBuffers(false)));
-      buffers = list.toArray(new ArrowBuf[list.size()]);
-    }
+    List<ArrowBuf> list = new ArrayList<>();
+    list.add(offsetBuffer);
+    list.add(validityBuffer);
+    list.addAll(Arrays.asList(vector.getBuffers(false)));
+    buffers = list.toArray(new ArrowBuf[list.size()]);
     if (clear) {
       for (ArrowBuf buffer : buffers) {
         buffer.getReferenceManager().retain();
@@ -865,8 +849,7 @@ public class ListVector extends BaseRepeatedValueVector implements PromotableVec
       }
     }
     /* valueCount for the data vector is the current end offset */
-    final int childValueCount = (valueCount == 0) ? 0 :
-            offsetBuffer.getInt((lastSet + 1) * OFFSET_WIDTH);
+    final int childValueCount = offsetBuffer.getInt((lastSet + 1) * OFFSET_WIDTH);
     /* set the value count of data vector and this will take care of
      * checking whether data buffer needs to be reallocated.
      */

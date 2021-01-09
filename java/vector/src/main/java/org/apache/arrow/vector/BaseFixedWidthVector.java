@@ -365,9 +365,6 @@ public abstract class BaseFixedWidthVector extends BaseValueVector
    */
   @Override
   public int getBufferSizeFor(final int count) {
-    if (count == 0) {
-      return 0;
-    }
     return (count * typeWidth) + getValidityBufferSizeFromCount(count);
   }
 
@@ -378,9 +375,6 @@ public abstract class BaseFixedWidthVector extends BaseValueVector
    */
   @Override
   public int getBufferSize() {
-    if (valueCount == 0) {
-      return 0;
-    }
     return (valueCount * typeWidth) + getValidityBufferSizeFromCount(valueCount);
   }
 
@@ -408,13 +402,9 @@ public abstract class BaseFixedWidthVector extends BaseValueVector
   public ArrowBuf[] getBuffers(boolean clear) {
     final ArrowBuf[] buffers;
     setReaderAndWriterIndex();
-    if (getBufferSize() == 0) {
-      buffers = new ArrowBuf[0];
-    } else {
-      buffers = new ArrowBuf[2];
-      buffers[0] = validityBuffer;
-      buffers[1] = valueBuffer;
-    }
+    buffers = new ArrowBuf[2];
+    buffers[0] = validityBuffer;
+    buffers[1] = valueBuffer;
     if (clear) {
       for (final ArrowBuf buffer : buffers) {
         buffer.getReferenceManager().retain(1);
@@ -530,17 +520,12 @@ public abstract class BaseFixedWidthVector extends BaseValueVector
   private void setReaderAndWriterIndex() {
     validityBuffer.readerIndex(0);
     valueBuffer.readerIndex(0);
-    if (valueCount == 0) {
-      validityBuffer.writerIndex(0);
-      valueBuffer.writerIndex(0);
+    validityBuffer.writerIndex(getValidityBufferSizeFromCount(valueCount));
+    if (typeWidth == 0) {
+      /* specialized handling for BitVector */
+      valueBuffer.writerIndex(getValidityBufferSizeFromCount(valueCount));
     } else {
-      validityBuffer.writerIndex(getValidityBufferSizeFromCount(valueCount));
-      if (typeWidth == 0) {
-        /* specialized handling for BitVector */
-        valueBuffer.writerIndex(getValidityBufferSizeFromCount(valueCount));
-      } else {
-        valueBuffer.writerIndex((long) valueCount * typeWidth);
-      }
+      valueBuffer.writerIndex((long) valueCount * typeWidth);
     }
   }
 

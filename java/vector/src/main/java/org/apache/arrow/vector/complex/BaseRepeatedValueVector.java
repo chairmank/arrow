@@ -68,7 +68,7 @@ public abstract class BaseRepeatedValueVector extends BaseValueVector implements
   protected BaseRepeatedValueVector(String name, BufferAllocator allocator, FieldVector vector, CallBack callBack) {
     super(allocator);
     this.name = name;
-    this.offsetBuffer = allocator.getEmpty();
+    this.offsetBuffer = allocator.buffer((long) OFFSET_WIDTH);
     this.vector = Preconditions.checkNotNull(vector, "data vector cannot be null");
     this.callBack = callBack;
     this.valueCount = 0;
@@ -214,18 +214,11 @@ public abstract class BaseRepeatedValueVector extends BaseValueVector implements
 
   @Override
   public int getBufferSize() {
-    if (valueCount == 0) {
-      return 0;
-    }
     return ((valueCount + 1) * OFFSET_WIDTH) + vector.getBufferSize();
   }
 
   @Override
   public int getBufferSizeFor(int valueCount) {
-    if (valueCount == 0) {
-      return 0;
-    }
-
     int innerVectorValueCount = offsetBuffer.getInt(valueCount * OFFSET_WIDTH);
 
     return ((valueCount + 1) * OFFSET_WIDTH) + vector.getBufferSizeFor(innerVectorValueCount);
@@ -254,14 +247,10 @@ public abstract class BaseRepeatedValueVector extends BaseValueVector implements
   @Override
   public ArrowBuf[] getBuffers(boolean clear) {
     final ArrowBuf[] buffers;
-    if (getBufferSize() == 0) {
-      buffers = new ArrowBuf[0];
-    } else {
-      List<ArrowBuf> list = new ArrayList<>();
-      list.add(offsetBuffer);
-      list.addAll(Arrays.asList(vector.getBuffers(false)));
-      buffers = list.toArray(new ArrowBuf[list.size()]);
-    }
+    List<ArrowBuf> list = new ArrayList<>();
+    list.add(offsetBuffer);
+    list.addAll(Arrays.asList(vector.getBuffers(false)));
+    buffers = list.toArray(new ArrowBuf[list.size()]);
     if (clear) {
       for (ArrowBuf buffer : buffers) {
         buffer.getReferenceManager().retain();
@@ -354,8 +343,7 @@ public abstract class BaseRepeatedValueVector extends BaseValueVector implements
     while (valueCount > getOffsetBufferValueCapacity()) {
       reallocOffsetBuffer();
     }
-    final int childValueCount = valueCount == 0 ? 0 :
-            offsetBuffer.getInt(valueCount * OFFSET_WIDTH);
+    final int childValueCount = offsetBuffer.getInt(valueCount * OFFSET_WIDTH);
     vector.setValueCount(childValueCount);
   }
 }

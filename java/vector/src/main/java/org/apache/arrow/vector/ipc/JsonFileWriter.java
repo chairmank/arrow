@@ -226,12 +226,6 @@ public class JsonFileWriter implements AutoCloseable {
           if (bufferType.equals(DATA) && (vector.getMinorType() == MinorType.VARCHAR ||
                   vector.getMinorType() == MinorType.VARBINARY)) {
             writeValueToGenerator(bufferType, vectorBuffer, vectorBuffers.get(v - 1), vector, i);
-          } else if (bufferType.equals(OFFSET) && vector.getValueCount() == 0 &&
-              (vector.getMinorType() == MinorType.VARBINARY || vector.getMinorType() == MinorType.VARCHAR)) {
-            ArrowBuf vectorBufferTmp = vector.getAllocator().buffer(4);
-            vectorBufferTmp.setInt(0, 0);
-            writeValueToGenerator(bufferType, vectorBufferTmp, null, vector, i);
-            vectorBufferTmp.release();
           } else {
             writeValueToGenerator(bufferType, vectorBuffer, null, vector, i);
           }

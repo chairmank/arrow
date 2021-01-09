@@ -126,7 +126,7 @@ public class LargeListVector extends BaseValueVector implements RepeatedValueVec
     this.callBack = callBack;
     this.validityAllocationSizeInBytes = getValidityBufferSizeFromCount(INITIAL_VALUE_ALLOCATION);
     this.lastSet = -1;
-    this.offsetBuffer = allocator.getEmpty();
+    this.offsetBuffer = allocator.buffer((long) OFFSET_WIDTH);
     this.vector = vector == null ? DEFAULT_DATA_VECTOR : vector;
     this.valueCount = 0;
   }
@@ -264,13 +264,8 @@ public class LargeListVector extends BaseValueVector implements RepeatedValueVec
   private void setReaderAndWriterIndex() {
     validityBuffer.readerIndex(0);
     offsetBuffer.readerIndex(0);
-    if (valueCount == 0) {
-      validityBuffer.writerIndex(0);
-      offsetBuffer.writerIndex(0);
-    } else {
-      validityBuffer.writerIndex(getValidityBufferSizeFromCount(valueCount));
-      offsetBuffer.writerIndex((valueCount + 1) * OFFSET_WIDTH);
-    }
+    validityBuffer.writerIndex(getValidityBufferSizeFromCount(valueCount));
+    offsetBuffer.writerIndex((valueCount + 1) * OFFSET_WIDTH);
   }
 
   @Override
@@ -724,9 +719,6 @@ public class LargeListVector extends BaseValueVector implements RepeatedValueVec
    */
   @Override
   public int getBufferSize() {
-    if (valueCount == 0) {
-      return 0;
-    }
     final int offsetBufferSize = (valueCount + 1) * OFFSET_WIDTH;
     final int validityBufferSize = getValidityBufferSizeFromCount(valueCount);
     return offsetBufferSize + validityBufferSize + vector.getBufferSize();
@@ -734,9 +726,6 @@ public class LargeListVector extends BaseValueVector implements RepeatedValueVec
 
   @Override
   public int getBufferSizeFor(int valueCount) {
-    if (valueCount == 0) {
-      return 0;
-    }
     final int validityBufferSize = getValidityBufferSizeFromCount(valueCount);
     long innerVectorValueCount = offsetBuffer.getLong((long) valueCount * OFFSET_WIDTH);
 
@@ -794,15 +783,11 @@ public class LargeListVector extends BaseValueVector implements RepeatedValueVec
   public ArrowBuf[] getBuffers(boolean clear) {
     setReaderAndWriterIndex();
     final ArrowBuf[] buffers;
-    if (getBufferSize() == 0) {
-      buffers = new ArrowBuf[0];
-    } else {
-      List<ArrowBuf> list = new ArrayList<>();
-      list.add(offsetBuffer);
-      list.add(validityBuffer);
-      list.addAll(Arrays.asList(vector.getBuffers(false)));
-      buffers = list.toArray(new ArrowBuf[list.size()]);
-    }
+    List<ArrowBuf> list = new ArrayList<>();
+    list.add(offsetBuffer);
+    list.add(validityBuffer);
+    list.addAll(Arrays.asList(vector.getBuffers(false)));
+    buffers = list.toArray(new ArrowBuf[list.size()]);
     if (clear) {
       for (ArrowBuf buffer : buffers) {
         buffer.getReferenceManager().retain();
@@ -993,8 +978,7 @@ public class LargeListVector extends BaseValueVector implements RepeatedValueVec
       }
     }
     /* valueCount for the data vector is the current end offset */
-    final long childValueCount = (valueCount == 0) ? 0 :
-            offsetBuffer.getLong(((long) lastSet + 1L) * OFFSET_WIDTH);
+    final long childValueCount = offsetBuffer.getLong(((long) lastSet + 1L) * OFFSET_WIDTH);
     /* set the value count of data vector and this will take care of
      * checking whether data buffer needs to be reallocated.
      * TODO: revisit when 64-bit vectors are supported
