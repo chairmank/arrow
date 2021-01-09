@@ -31,6 +31,8 @@ import org.apache.arrow.vector.UInt1Vector;
 import org.apache.arrow.vector.UInt2Vector;
 import org.apache.arrow.vector.UInt4Vector;
 import org.apache.arrow.vector.UInt8Vector;
+import org.apache.arrow.vector.VarBinaryVector;
+import org.apache.arrow.vector.VarCharVector;
 import org.apache.arrow.vector.complex.ListVector;
 import org.apache.arrow.vector.testing.ValueVectorDataPopulator;
 import org.apache.arrow.vector.types.Types;
@@ -389,5 +391,15 @@ public class TestDefaultVectorComparator {
       assertTrue(comparator.compare(7, 6) > 0);
       assertTrue(comparator.compare(7, 7) == 0);
     }
+  }
+
+  @Test
+  public void testCompareBinary() {
+    // TODO
+  }
+
+  @Test
+  public void testCompareUtf8() {
+    // TODO
   }
 }
